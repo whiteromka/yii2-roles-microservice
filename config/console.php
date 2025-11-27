@@ -2,6 +2,10 @@
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
+$dbLocal = __DIR__ . '/db_local.php';
+if (file_exists($dbLocal)) {
+    $db = require $dbLocal;
+}
 
 $config = [
     'id' => 'basic-console',
@@ -14,6 +18,9 @@ $config = [
         '@tests' => '@app/tests',
     ],
     'components' => [
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],

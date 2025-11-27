@@ -25,7 +25,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-x
 RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
 
 # Установка Xdebug
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install xdebug
 
 # Копируем конфигурацию PHP, Xdebug и PHP-FPM
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
