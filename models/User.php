@@ -2,103 +2,96 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use Yii;
+use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
+
+/**
+ * This is the model class for table "user".
+ *
+ * @property int $id
+ * @property string $external_id Внешний ID пользователя
+ * @property string|null $name
+ * @property string|null $last_name
+ * @property string|null $email
+ * @property int $status
+ * @property string $created_at
+ * @property string|null $updated_at
+ * @property int $service_id
+ *
+ * @property AuthAssignment[] $authAssignments
+ * @property AuthItem[] $itemNames
+ * @property Service $service
+ */
+class User extends ActiveRecord
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
-
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
-
     /**
      * {@inheritdoc}
      */
-    public static function findIdentity($id)
+    public static function tableName()
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return 'user';
     }
 
     /**
      * {@inheritdoc}
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public function rules()
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return [
+            [['name', 'last_name', 'email', 'updated_at'], 'default', 'value' => null],
+            [['status'], 'default', 'value' => 1],
+            [['external_id', 'service_id'], 'required'],
+            [['status', 'service_id'], 'default', 'value' => null],
+            [['status', 'service_id'], 'integer'],
+            [['created_at', 'updated_at'], 'safe'],
+            [['external_id'], 'string', 'max' => 500],
+            [['name', 'last_name'], 'string', 'max' => 100],
+            [['email'], 'string', 'max' => 255],
+            [['external_id'], 'unique'],
+            [['service_id'], 'exist', 'skipOnError' => true, 'targetClass' => Service::class, 'targetAttribute' => ['service_id' => 'id']],
+        ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getId()
+    public function attributeLabels()
     {
-        return $this->id;
+        return [
+            'id' => 'ID',
+            'external_id' => 'External ID',
+            'name' => 'Name',
+            'last_name' => 'Last Name',
+            'email' => 'Email',
+            'status' => 'Status',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+            'service_id' => 'Service ID',
+        ];
     }
 
     /**
-     * {@inheritdoc}
+     * @return ActiveQuery
      */
-    public function getAuthKey()
+    public function getAuthAssignments()
     {
-        return $this->authKey;
+        return $this->hasMany(AuthAssignment::class, ['user_id' => 'id']);
     }
 
     /**
-     * {@inheritdoc}
+     * @return ActiveQuery
      */
-    public function validateAuthKey($authKey)
+    public function getItemNames()
     {
-        return $this->authKey === $authKey;
+        return $this->hasMany(AuthItem::class, ['name' => 'item_name'])->viaTable('auth_assignment', ['user_id' => 'id']);
     }
 
     /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * @return ActiveQuery
      */
-    public function validatePassword($password)
+    public function getService()
     {
-        return $this->password === $password;
+        return $this->hasOne(Service::class, ['id' => 'service_id']);
     }
 }
