@@ -27,6 +27,9 @@ use yii\db\ActiveRecord;
  */
 class AuthItem extends ActiveRecord
 {
+    public const TYPE_ROLE = 1;
+    public const TYPE_PERMISSION = 2;
+
     /**
      * {@inheritdoc}
      */

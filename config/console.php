@@ -22,7 +22,12 @@ $config = [
             'class' => 'yii\rbac\DbManager',
         ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\redis\Cache',
+            'redis' => [
+                'hostname' => 'rbac-redis',
+                'port' => $params['redis']['port'],
+                'database' => 0,
+            ],
         ],
         'log' => [
             'targets' => [
