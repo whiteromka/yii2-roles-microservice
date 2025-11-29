@@ -8,8 +8,8 @@ class m251126_165945_create_user_table extends Migration
     {
         $this->createTable('user', [
             'id' => $this->primaryKey(),
-            'external_id' => $this->string(500)->notNull()->unique()->comment('Внешний ID пользователя'),
-            'service_name' => $this->string(100)->notNull()->comment('Имя внешнего сервиса пользователя'),
+            'external_id' => $this->integer()->notNull()->comment('Внешний ID пользователя'),
+            'service_id' => $this->integer()->notNull()->comment('Ссылка на сервис'),
             'name' => $this->string(100)->null(),
             'last_name' => $this->string(100)->null(),
             'email' => $this->string(255)->null(),
@@ -18,7 +18,8 @@ class m251126_165945_create_user_table extends Migration
             'updated_at' => $this->timestamp()->defaultValue(null),
         ]);
 
-        $this->createIndex('idx_users_service_name', 'user', 'service_name');
+        $this->createIndex('idx_users_external_id', 'user', 'external_id');
+        $this->createIndex('idx_user_service_id', '{{%user}}', 'service_id');
     }
 
     public function safeDown()

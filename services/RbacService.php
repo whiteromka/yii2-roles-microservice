@@ -3,17 +3,19 @@
 namespace app\services;
 
 use app\repositories\RbacRepository;
-use app\models\AuthItem;
 use yii\base\Component;
+use yii\caching\TagDependency;
 use Yii;
 
 class RbacService extends Component
 {
-    private RbacRepository $rbacRepository;
     public const CACHE_PREFIX_KEY = 'roles_and_permissions_';
+    public const CACHE_TAG_PREFIX = 'user_rbac_';
+
+    private RbacRepository $rbacRepository;
 
     public function __construct(
-        RbacRepository $rbacRepository = null,
+        ?RbacRepository $rbacRepository = null,
         $config = []
     ) {
         $this->rbacRepository = $rbacRepository ?: Yii::createObject(RbacRepository::class);
@@ -22,42 +24,25 @@ class RbacService extends Component
 
     private function getCacheDuration(): int
     {
-        return YII_ENV === 'dev' ? 10 : 86400;
+        return YII_ENV === 'dev' ? 10 : 86400; // 1 день
     }
 
     /** Получить все роли и разрешения  */
-    public function getRolesAndPermissionsByUserId(int $userId, bool $useCache = true): array
+    public function getRolesAndPermissionsByUserId(int $userId): array
     {
-        if (!$useCache) {
-            $result = $this->rbacRepository->getRolesAndPermissionsByUserId($userId);
-            return $this->sort($result);
-        }
-
-        $cacheKey = self::CACHE_PREFIX_KEY . $userId;
-        return Yii::$app->cache->getOrSet($cacheKey, function() use ($userId) {
-            $result = $this->rbacRepository->getRolesAndPermissionsByUserId($userId);
-            return $this->sort($result);
-        }, $this->getCacheDuration());
+        return Yii::$app->cache->getOrSet(
+            self::CACHE_PREFIX_KEY . $userId,
+            function() use ($userId) {
+                return $this->rbacRepository->getRolesAndPermissionsByUserId($userId);
+            },
+            $this->getCacheDuration(),
+            new TagDependency(['tags' => self::CACHE_TAG_PREFIX . $userId])
+        );
     }
 
-    /** Отсортировать роли и разрешения */
-    private function sort(array $rolesAndPermissions = []): array
+    /** Сбросить кэш для пользователя $userId */
+    public function invalidateUserCache(int $userId): void
     {
-        $result = [
-            'roles' => [],
-            'permissions' => []
-        ];
-        if (empty($rolesAndPermissions)) {
-            return $result;
-        }
-
-        foreach($rolesAndPermissions as $authItem) {
-            if (!empty($authItem['type']) && $authItem['type'] === AuthItem::TYPE_ROLE) {
-                $result['roles'][] = $authItem['name'];
-            } else {
-                $result['permissions'][] = $authItem['name'];
-            }
-        }
-        return $result;
+        TagDependency::invalidate(Yii::$app->cache, self::CACHE_TAG_PREFIX . $userId);
     }
 }

@@ -4,27 +4,31 @@ namespace app\models;
 
 use Yii;
 use yii\db\ActiveQuery;
-use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "user".
  *
  * @property int $id
- * @property string $external_id Внешний ID пользователя
+ * @property int $external_id Внешний ID пользователя
+ * @property int $service_id
  * @property string|null $name
  * @property string|null $last_name
  * @property string|null $email
  * @property int $status
  * @property string $created_at
  * @property string|null $updated_at
- * @property int $service_id
  *
  * @property AuthAssignment[] $authAssignments
  * @property AuthItem[] $itemNames
  * @property Service $service
  */
-class User extends ActiveRecord
+class User extends BaseModel
 {
+    /**
+     * @var string|null Виртуальное поле - название сервиса
+     */
+    public $service_name;
+
     /**
      * {@inheritdoc}
      */
@@ -40,17 +44,38 @@ class User extends ActiveRecord
     {
         return [
             [['name', 'last_name', 'email', 'updated_at'], 'default', 'value' => null],
+            [['service_name'], 'string', 'max' => 255],
+            [['service_name'], 'validateServiceName'],
+            [['status', 'external_id', 'service_id'], 'integer'],
             [['status'], 'default', 'value' => 1],
             [['external_id', 'service_id'], 'required'],
-            [['status', 'service_id'], 'default', 'value' => null],
+            [['status', 'service_id', 'external_id'], 'default', 'value' => null],
             [['status', 'service_id'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
-            [['external_id'], 'string', 'max' => 500],
             [['name', 'last_name'], 'string', 'max' => 100],
             [['email'], 'string', 'max' => 255],
-            [['external_id'], 'unique'],
             [['service_id'], 'exist', 'skipOnError' => true, 'targetClass' => Service::class, 'targetAttribute' => ['service_id' => 'id']],
+            [['service_name'], 'string', 'max' => 255],
+            [['service_name'], 'validateServiceName'],
         ];
+    }
+
+    /**
+     * Проверяет существование сервиса с указанным названием
+     *
+     * @param string $attribute the attribute currently being validated
+     * @param array $params the additional name-value pairs given in the rule
+     */
+    public function validateServiceName($attribute, $params)
+    {
+        if (!$this->hasErrors() && !empty($this->$attribute)) {
+            $service = Service::findOne(['name' => $this->$attribute]);
+            if ($service) {
+                $this->service_id = $service->id;
+            } else {
+                $this->addError($attribute, "Сервис с названием '{$this->$attribute}' не существует");
+            }
+        }
     }
 
     /**

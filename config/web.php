@@ -73,6 +73,7 @@ $config = [
             'rules' => [
                 // APIs
                 'GET api/rbac/user-permissions/<userId:\d+>' => 'api/rbac/user-permissions',
+                'POST api/rbac/create-user' => 'api/rbac/create-user',
             ],
         ],
     ],
