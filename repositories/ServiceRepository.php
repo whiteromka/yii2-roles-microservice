@@ -4,10 +4,10 @@ namespace app\repositories;
 
 use app\models\Service;
 
-class ServiceRepository
+class ServiceRepository extends BaseRepository
 {
-    public function findByName(string $name): ?Service
+    protected function modelClass(): string
     {
-        return Service::findOne(['name' => $name]);
+        return Service::class;
     }
 }

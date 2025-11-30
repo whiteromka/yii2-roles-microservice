@@ -24,12 +24,6 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
-    'container' => [
-        'singletons' => [
-            RbacService::class => RbacService::class,
-            RbacRepository::class => RbacRepository::class
-        ],
-    ],
     'components' => [
         'request' => [
             'cookieValidationKey' => '1KqyLnSdptTsmKKPwSRNkmoK3ZYvsjmr',
@@ -74,6 +68,9 @@ $config = [
                 // APIs
                 'GET api/rbac/user-permissions/<userId:\d+>' => 'api/rbac/user-permissions',
                 'POST api/rbac/create-user' => 'api/rbac/create-user',
+
+                'GET api/<controller:\w+>/view/<id:\d+>' => 'api/<controller>/view',
+                'POST api/<controller:\w+>/create' => 'api/<controller>/create',
             ],
         ],
     ],

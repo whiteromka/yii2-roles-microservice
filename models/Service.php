@@ -18,7 +18,7 @@ use yii\db\ActiveRecord;
  *
  * @property User[] $users
  */
-class Service extends ActiveRecord
+class Service extends BaseModel
 {
     /**
      * {@inheritdoc}

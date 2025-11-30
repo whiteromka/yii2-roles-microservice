@@ -14,12 +14,10 @@ class RbacService extends Component
 
     private RbacRepository $rbacRepository;
 
-    public function __construct(
-        ?RbacRepository $rbacRepository = null,
-        $config = []
-    ) {
-        $this->rbacRepository = $rbacRepository ?: Yii::createObject(RbacRepository::class);
+    public function __construct(RbacRepository $rbacRepository, $config = [])
+    {
         parent::__construct($config);
+        $this->rbacRepository = $rbacRepository;
     }
 
     private function getCacheDuration(): int

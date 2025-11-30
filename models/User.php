@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\models\validators\ServiceNameValidator;
 use Yii;
 use yii\db\ActiveQuery;
 
@@ -56,15 +57,15 @@ class User extends BaseModel
             [['email'], 'string', 'max' => 255],
             [['service_id'], 'exist', 'skipOnError' => true, 'targetClass' => Service::class, 'targetAttribute' => ['service_id' => 'id']],
             [['service_name'], 'string', 'max' => 255],
-            [['service_name'], 'validateServiceName'],
+            [['service_name'], ServiceNameValidator::class],
         ];
     }
 
     /**
      * Проверяет существование сервиса с указанным названием
      *
-     * @param string $attribute the attribute currently being validated
-     * @param array $params the additional name-value pairs given in the rule
+     * @param string $attribute
+     * @param array $params
      */
     public function validateServiceName($attribute, $params)
     {

@@ -3,29 +3,22 @@
 namespace app\controllers\api;
 
 use app\dto\api\ApiResponseDto;
-use app\models\User;
 use Exception;
-use Yii;
-use yii\filters\VerbFilter;
-use yii\rest\Controller;
 use yii\web\Response;
 use yii\filters\ContentNegotiator;
 use app\services\RbacService;
 
-/**
- * RBAC API Controller
- */
-class RbacController extends Controller
+class RbacController extends ApiController
 {
     private RbacService $rbacService;
 
     public function __construct(
         $id,
         $module,
-        $config = [],
-        RbacService $rbacService = null
+        RbacService $rbacService,
+        $config = []
     ) {
-        $this->rbacService = $rbacService ?: Yii::createObject(RbacService::class);
+        $this->rbacService = $rbacService;
         parent::__construct($id, $module, $config);
     }
 
@@ -41,17 +34,12 @@ class RbacController extends Controller
                     'application/json' => Response::FORMAT_JSON,
                 ],
             ],
-            'verbFilter' => [
-                'class' => VerbFilter::class,
-                'actions' => [
-                    'create-user' => ['POST'],
-                ],
-            ],
         ];
     }
 
     /**
-     * GET Получить все роли и разрешения пользователя
+     * Получить все роли и разрешения пользователя
+     * GET api/rbac/user-permissions/1
      *
      * @param int $userId
      * @return array
@@ -64,36 +52,5 @@ class RbacController extends Controller
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }
-    }
-
-    /**
-     * POST Создать нового пользователя
-     *
-     * @return array
-     */
-    public function actionCreateUser(): array
-    {
-        try {
-            $rawBody = Yii::$app->getRequest()->getRawBody();
-            $data = json_decode($rawBody, true);
-
-            $user = new User();
-            if ($user->load($data, '') && $user->save()) {
-                return ApiResponseDto::success($user->toArray());
-            } else {
-                return $this->error($user->getError());
-            }
-        } catch (Exception $e) {
-            return $this->error($e->getMessage(), 500, true);
-        }
-    }
-
-    private function error(string $errorMessage, int $code = 400, bool $isLog = false): array
-    {
-        if ($isLog) {
-            Yii::error($errorMessage);
-        }
-        $this->response->statusCode = $code;
-        return ApiResponseDto::error('Ошибка сервера: ' . $errorMessage);
     }
 }

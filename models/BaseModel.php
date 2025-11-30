@@ -4,7 +4,7 @@ namespace app\models;
 
 use yii\db\ActiveRecord;
 
-class BaseModel extends ActiveRecord
+abstract class BaseModel extends ActiveRecord
 {
     /** Венет первую ошибку в отвалидированной модели  */
     public function getError(): string
