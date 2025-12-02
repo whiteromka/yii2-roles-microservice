@@ -11,4 +11,9 @@ class UserRepository extends BaseRepository
     {
         return User::class;
     }
+
+    public function findByExternalId(int $id): ?User
+    {
+        return User::find()->andWhere(['external_id' => $id])->one();
+    }
 }

@@ -5,10 +5,10 @@ namespace app\controllers\api;
 use app\dto\api\ApiResponseDto;
 use app\models\Service;
 use app\repositories\ServiceRepository;
-use Yii;
 use yii\filters\VerbFilter;
 use yii\web\Response;
 use yii\filters\ContentNegotiator;
+use Yii;
 
 class ServiceController extends ApiController
 {

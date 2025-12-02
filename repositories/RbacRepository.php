@@ -3,6 +3,7 @@
 namespace app\repositories;
 
 use app\models\AuthItem;
+use app\services\RbacService;
 use Exception;
 use Yii;
 
@@ -11,13 +12,13 @@ class RbacRepository
     /** Получить все названия ролей из БД */
     public function getRoles(): array
     {
-        return AuthItem::find()->asArray()->select(['name'])->where(['type' => AuthItem::TYPE_ROLE])->all();
+        return AuthItem::find()->select(['name'])->where(['type' => AuthItem::TYPE_ROLE])->column();
     }
 
     /** Получить все названия разрешений из БД */
     public function getPermissions(): array
     {
-        return AuthItem::find()->asArray()->select(['name'])->where(['type' => AuthItem::TYPE_PERMISSION])->all();
+        return AuthItem::find()->select(['name'])->where(['type' => AuthItem::TYPE_PERMISSION])->column();
     }
 
     /** Получить все роли и разрешения рекурсивно для $userExternalId */
@@ -68,5 +69,45 @@ class RbacRepository
         }
 
         return $result;
+    }
+
+    /**
+     * Добавить роли и разрешения к пользователю
+     * @var array $data
+     * {
+     *   "userId": 1,
+     *   "newItems": ['...'],
+     *   "existingItems": [ '...']
+     * }
+     */
+    public function addRolesAndPermissions(array $data): array
+    {
+        $rolesAndPermissions = array_diff($data['newItems'], $data['existingItems']);
+        if (empty($rolesAndPermissions)) {
+            return $data;
+        }
+
+        $rows = [];
+        $timestamp = time();
+        foreach ($rolesAndPermissions as $item) {
+            $rows[] = [
+                $item,
+                $data['userId'],
+                $timestamp,
+            ];
+        }
+
+        try {
+            Yii::$app->db->createCommand()->batchInsert(
+                'auth_assignment',
+                ['item_name', 'user_id', 'created_at'],
+                $rows
+            )->execute();
+            RbacService::invalidateUserCache($data['userId']);
+            return $data;
+        } catch (Exception $e) {
+            Yii::error('Ошибка при обновлении RBAC: ' . $e->getMessage());
+            return [];
+        }
     }
 }

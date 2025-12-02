@@ -48,12 +48,12 @@ class UserController extends ApiController
      */
     public function actionView(int $id): array
     {
-        $service = $this->userRepository->findOne($id);
-        if (!$service) {
+        $user = $this->userRepository->findByExternalId($id);
+        if (!$user) {
             return $this->error("Сервис ID={$id} не найден", 404);
         }
 
-        return ApiResponseDto::success($service->toArray());
+        return ApiResponseDto::success($user->toArray());
     }
 
     /**
