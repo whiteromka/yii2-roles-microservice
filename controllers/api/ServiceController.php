@@ -51,7 +51,7 @@ class ServiceController extends ApiController
         $service = $this->serviceRepository->findOne($id);
 
         if (!$service) {
-            return $this->error("Сервис ID={$id} не найден", 404);
+            return $this->error("Сервис с ID {$id} не найден", 404);
         }
 
         return ApiResponseDto::success($service->toArray());

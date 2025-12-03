@@ -50,7 +50,7 @@ class UserController extends ApiController
     {
         $user = $this->userRepository->findByExternalId($id);
         if (!$user) {
-            return $this->error("Сервис ID={$id} не найден", 404);
+            return $this->error("Пользователь с ID {$id} не найден", 404);
         }
 
         return ApiResponseDto::success($user->toArray());
@@ -58,7 +58,7 @@ class UserController extends ApiController
 
     /**
      * Создать нового пользователя
-     * POST api/rbac/create-user
+     * POST api/user/create-user
      * {
      *   "name": "Test",
      *   "last_name": "Testov",

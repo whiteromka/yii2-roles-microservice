@@ -21,8 +21,8 @@ class RbacRepository
         return AuthItem::find()->select(['name'])->where(['type' => AuthItem::TYPE_PERMISSION])->column();
     }
 
-    /** Получить все роли и разрешения рекурсивно для $userExternalId */
-    public function getRolesAndPermissionsByUserId(int $userExternalId): array
+    /** Получить все роли и разрешения рекурсивно для $userId */
+    public function getRolesAndPermissionsByUserId(int $userId): array
     {
         $sql = <<<SQL
             WITH RECURSIVE permission_hierarchy AS (
@@ -31,8 +31,7 @@ class RbacRepository
                     ai.type
                 FROM auth_item ai
                     INNER JOIN auth_assignment aa ON aa.item_name = ai.name
-                    INNER JOIN "user" u ON u.id = aa.user_id
-                WHERE u.external_id = :userExternalId
+                WHERE aa.user_id = :userId
                 UNION ALL
                 SELECT
                     child.name,
@@ -47,7 +46,7 @@ class RbacRepository
         SQL;
 
         try {
-            $data = Yii::$app->db->createCommand($sql, [':userExternalId' => $userExternalId])->queryAll();
+            $data = Yii::$app->db->createCommand($sql, [':userId' => $userId])->queryAll();
             return $this->sort($data);
         } catch (Exception $e) {
             Yii::error('Ошибка при получении ролей и разрешений пользователя: ' . $e->getMessage());

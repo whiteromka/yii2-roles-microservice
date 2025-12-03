@@ -31,7 +31,12 @@ class RbacService extends Component
         return YII_ENV === 'dev' ? 10 : 86400; // 1 день
     }
 
-    /** Получить все роли и разрешения для пользователя $userId */
+    /**
+     * Получить все роли и разрешения для пользователя $userId
+     *
+     * @param int $userId // Внутренний ID
+     * @return array []
+     */
     public function getRolesAndPermissionsByUserId(int $userId): array
     {
         return Yii::$app->cache->getOrSet(
@@ -44,8 +49,12 @@ class RbacService extends Component
         );
     }
 
-    /** ToDo дописать как будет обновление ролей и разрешений пользователя */
-    /** Сбросить кэш для пользователя $userId */
+    /**
+     * Сбросить кэш для пользователя $userId
+     *
+     * @param int $userId // Внутренний ID
+     * @return array
+     */
     public static function invalidateUserCache(int $userId): void
     {
         TagDependency::invalidate(Yii::$app->cache, self::CACHE_TAG_PREFIX . $userId);
@@ -63,23 +72,22 @@ class RbacService extends Component
     /**
     * @var array $data
     * {
-    *   "user_id": 1,
+    *   "user_id": 1, // Это внутренний ID
     *   "roles": ['admin', '...'],
-    *   "permission": ['viewQuestions', '...']
+    *   "permissions": ['viewQuestions', '...']
     * }
     */
     public function addRolesAndPermissions(array $data): array
     {
-        $user = $this->userRepository->findByExternalId($data['user_id']);
         $roles = $data['roles'] ?? [];
         $permissions = $data['permissions'] ?? [];
         $newItems = array_merge($roles, $permissions);
 
-        $existingData = $this->getRolesAndPermissionsByUserId($user->id);
-        $existingItems = array_merge($existingData['roles'], $existingData['permission']);
+        $existingData = $this->getRolesAndPermissionsByUserId($data['user_id']);
+        $existingItems = array_merge($existingData['roles'], $existingData['permissions']);
 
         $data = [
-            'userId' => $user->id,
+            'userId' => $data['user_id'],
             'newItems' => $newItems,
             'existingItems' => $existingItems
         ];
