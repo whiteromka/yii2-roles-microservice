@@ -1,6 +1,6 @@
 <?php
 
-namespace api\models\traits;
+namespace app\models\traits;
 
 /**
  * Только для моделей: AR и Model

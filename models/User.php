@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use api\models\traits\ModelGetErrorTrait;
 use app\models\validators\ServiceNameValidator;
 use Yii;
 use yii\db\ActiveQuery;
