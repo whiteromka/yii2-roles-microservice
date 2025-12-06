@@ -2,7 +2,6 @@
 
 namespace app\controllers\api;
 
-use app\dto\api\ApiResponseDto;
 use app\models\Service;
 use app\repositories\ServiceRepository;
 use yii\filters\VerbFilter;
@@ -54,7 +53,7 @@ class ServiceController extends ApiController
             return $this->error("Сервис с ID {$id} не найден", 404);
         }
 
-        return ApiResponseDto::success($service->toArray());
+        return $this->success($service->toArray());
     }
 
     /**
@@ -76,7 +75,7 @@ class ServiceController extends ApiController
 
         $service = new Service();
         if ($service->load($data, '') && $service->save()) {
-            return ApiResponseDto::success($service->toArray());
+            return $this->success($service->toArray());
         }
         return $this->error($service->getError());
     }

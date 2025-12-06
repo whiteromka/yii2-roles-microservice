@@ -66,9 +66,10 @@ $config = [
             'showScriptName' => false,
             'rules' => [
                 // APIs
-                'GET api/rbac/user-permissions/<userId:\d+>' => 'api/rbac/user-permissions',
+                'GET api/rbac/user-permissions/<externalId:\d+>/<serviceId:\d+>' => 'api/rbac/user-permissions',
                 'POST api/rbac/create-user' => 'api/rbac/create-user',
 
+                'GET api/user/view/<externalId:\d+>/<serviceId:\d+>' => 'api/user/view',
                 'GET api/<controller:\w+>/view/<id:\d+>' => 'api/<controller>/view',
                 'POST api/<controller:\w+>/create' => 'api/<controller>/create',
             ],

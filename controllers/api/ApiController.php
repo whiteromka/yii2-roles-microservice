@@ -11,6 +11,11 @@ use Yii;
  */
 abstract class ApiController extends Controller
 {
+    protected function success(array $data): array
+    {
+        return ApiResponseDto::success($data);
+    }
+
     protected function error(string $errorMessage, int $code = 400, bool $isLog = false): array
     {
         if ($isLog) {

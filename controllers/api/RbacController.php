@@ -2,7 +2,6 @@
 
 namespace app\controllers\api;
 
-use app\dto\api\ApiResponseDto;
 use app\repositories\UserRepository;
 use Exception;
 use Yii;
@@ -44,21 +43,22 @@ class RbacController extends ApiController
 
     /**
      * Получить все роли и разрешения пользователя
-     * GET api/rbac/user-permissions/1
+     * GET api/rbac/user-permissions/1/1
      *
-     * @param int $userId // тут будет внешний ID
+     * @param int $externalId // тут будет внешний ID
+     * @param int $serviceId
      * @return array
      */
-    public function actionUserPermissions(int $userId): array
+    public function actionUserPermissions(int $externalId, int $serviceId): array
     {
         try {
-            $user = $this->userRepository->findByExternalId($userId);
+            $user = $this->userRepository->findByExternalIdAndService($externalId, $serviceId);
             if (!$user) {
-                return $this->error("Пользователь с ID {$userId} не найден", 404);
+                return $this->error("Пользователь с ID {$externalId} не найден", 404);
             }
 
             $data = $this->rbacService->getRolesAndPermissionsByUserId($user->id);
-            return ApiResponseDto::success($data);
+            return $this->success($data);
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }
@@ -74,7 +74,7 @@ class RbacController extends ApiController
     {
         try {
             $data = $this->rbacService->getAllRolesAndPermissions();
-            return ApiResponseDto::success($data);
+            return $this->success($data);
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }
@@ -84,7 +84,8 @@ class RbacController extends ApiController
      * Добавить роли и разрешения
      * POST api/rbac/add-roles-and-permissions
      * {
-     *   "user_id": 1, // Это внешний ID
+     *   "external_id": 1,
+     *   "service_id": 1,
      *   "roles": ['admin', '...'],
      *   "permissions": ['viewQuestions', '...']
      * }
@@ -94,13 +95,15 @@ class RbacController extends ApiController
     {
         try {
             $postData = json_decode(Yii::$app->request->getRawBody(), true);
-            $user = $this->userRepository->findByExternalId($postData['user_id'] ?? 0);
+
+            $user = $this->userRepository->findByExternalIdAndService($postData['external_id'], $postData['service_id']);
             if (!$user) {
-                return $this->error("Пользователь с ID {$postData['user_id']} не найден", 404);
+                return $this->error("Пользователь с ID {$postData['external_id']} не найден", 404);
             }
-            $postData['user_id'] = $user->id;
+
+            $postData['external_id'] = $user->id;
             $data = $this->rbacService->addRolesAndPermissions($postData);
-            return ApiResponseDto::success($data);
+            return $this->success($data);
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }

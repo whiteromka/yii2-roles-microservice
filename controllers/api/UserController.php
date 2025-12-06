@@ -2,10 +2,11 @@
 
 namespace app\controllers\api;
 
-use app\dto\api\ApiResponseDto;
-use app\models\User;
+use api\models\forms\UserCreateForm;
 use app\repositories\UserRepository;
+use app\services\UserService;
 use Exception;
+use yii\base\InvalidConfigException;
 use yii\filters\VerbFilter;
 use yii\web\Response;
 use yii\filters\ContentNegotiator;
@@ -14,10 +15,18 @@ use Yii;
 class UserController extends ApiController
 {
     private UserRepository $userRepository;
+    private UserService $userService;
 
-    public function __construct($id, $module, UserRepository $serviceRepository, $config = [])
+    public function __construct(
+        $id,
+        $module,
+        UserRepository $serviceRepository,
+        UserService $userService,
+        $config = []
+    )
     {
         $this->userRepository = $serviceRepository;
+        $this->userService = $userService;
         parent::__construct($id, $module, $config);
     }
 
@@ -44,16 +53,20 @@ class UserController extends ApiController
 
     /**
      * Получить пользователя
-     * GET api/user/view/1
+     * GET api/user/view/1/2
+     *
+     * @param int $externalId
+     * @param int $serviceId
+     * @return array
      */
-    public function actionView(int $id): array
+    public function actionView(int $externalId, int $serviceId): array
     {
-        $user = $this->userRepository->findByExternalId($id);
+        $user = $this->userRepository->findByExternalIdAndService($externalId, $serviceId);
         if (!$user) {
-            return $this->error("Пользователь с ID {$id} не найден", 404);
+            return $this->error("Пользователь с ID {$externalId} не найден", 404);
         }
 
-        return ApiResponseDto::success($user->toArray());
+        return $this->success($user->toArray());
     }
 
     /**
@@ -70,19 +83,19 @@ class UserController extends ApiController
      * }
      *
      * @return array
+     * @throws InvalidConfigException
      */
     public function actionCreate(): array
     {
-        try {
-            $rawBody = Yii::$app->getRequest()->getRawBody();
-            $data = json_decode($rawBody, true);
+        $form = new UserCreateForm();
+        $form->load(Yii::$app->request->getBodyParams(), '');
+        if (!$form->validate()) {
+            return $this->error($form->getError());
+        }
 
-            $user = new User();
-            if ($user->load($data, '') && $user->save()) {
-                return ApiResponseDto::success($user->toArray());
-            } else {
-                return $this->error($user->getError());
-            }
+        try {
+            $user = $this->userService->create($form);
+            return $this->success($user->toArray());
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }
