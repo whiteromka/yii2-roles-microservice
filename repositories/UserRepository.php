@@ -2,7 +2,7 @@
 
 namespace app\repositories;
 
-use api\models\forms\UserCreateForm;
+use app\models\forms\UserCreateForm;
 use app\models\User;
 use Exception;
 
@@ -13,7 +13,7 @@ class UserRepository extends BaseRepository
         return User::class;
     }
 
-    public function findByExternalIdAndService(int $id, int $serviceId): ?User
+    public function findByExternalIdAndServiceId(int $id, int $serviceId): ?User
     {
         return User::find()
             ->andWhere(['external_id' => $id])

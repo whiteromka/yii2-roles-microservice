@@ -19,6 +19,7 @@ if (file_exists($dbLocal)) {
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
+    'language' => 'ru-Ru',
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
@@ -27,6 +28,9 @@ $config = [
     'components' => [
         'request' => [
             'cookieValidationKey' => '1KqyLnSdptTsmKKPwSRNkmoK3ZYvsjmr',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
         ],
         'authManager' => [
             'class' => 'yii\rbac\DbManager',

@@ -75,20 +75,14 @@ class RbacRepository
      * @var array $data
      * {
      *   "userId": 1,
-     *   "newItems": ['...'],
-     *   "existingItems": [ '...']
+     *   "rolesAndPermissions": ['...'],
      * }
      */
-    public function addRolesAndPermissions(array $data): array
+    public function addRolesAndPermissions(array $data): void
     {
-        $rolesAndPermissions = array_diff($data['newItems'], $data['existingItems']);
-        if (empty($rolesAndPermissions)) {
-            return $data;
-        }
-
         $rows = [];
         $timestamp = time();
-        foreach ($rolesAndPermissions as $item) {
+        foreach ($data['rolesAndPermissions'] as $item) {
             $rows[] = [
                 $item,
                 $data['userId'],
@@ -103,10 +97,8 @@ class RbacRepository
                 $rows
             )->execute();
             RbacService::invalidateUserCache($data['userId']);
-            return $data;
         } catch (Exception $e) {
             Yii::error('Ошибка при обновлении RBAC: ' . $e->getMessage());
-            return [];
         }
     }
 }

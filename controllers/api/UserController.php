@@ -2,7 +2,7 @@
 
 namespace app\controllers\api;
 
-use api\models\forms\UserCreateForm;
+use app\models\forms\UserCreateForm;
 use app\repositories\UserRepository;
 use app\services\UserService;
 use Exception;
@@ -61,7 +61,7 @@ class UserController extends ApiController
      */
     public function actionView(int $externalId, int $serviceId): array
     {
-        $user = $this->userRepository->findByExternalIdAndService($externalId, $serviceId);
+        $user = $this->userRepository->findByExternalIdAndServiceId($externalId, $serviceId);
         if (!$user) {
             return $this->error("Пользователь с ID {$externalId} не найден", 404);
         }

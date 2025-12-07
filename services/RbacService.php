@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\models\forms\RolesAndPermissionsForm;
 use app\repositories\RbacRepository;
 use app\repositories\UserRepository;
 use yii\base\Component;
@@ -53,7 +54,6 @@ class RbacService extends Component
      * Сбросить кэш для пользователя $userId
      *
      * @param int $userId // Внутренний ID
-     * @return array
      */
     public static function invalidateUserCache(int $userId): void
     {
@@ -69,28 +69,21 @@ class RbacService extends Component
         ];
     }
 
-    /**
-    * @var array $data
-    * {
-    *   "user_id": 1, // Это внутренний ID
-    *   "roles": ['admin', '...'],
-    *   "permissions": ['viewQuestions', '...']
-    * }
-    */
-    public function addRolesAndPermissions(array $data): array
+    /** Добавить еще ролей и разрешений */
+    public function addRolesAndPermissions(RolesAndPermissionsForm $form): void
     {
-        $roles = $data['roles'] ?? [];
-        $permissions = $data['permissions'] ?? [];
-        $newItems = array_merge($roles, $permissions);
-
-        $existingData = $this->getRolesAndPermissionsByUserId($data['user_id']);
+        $existingData = $this->getRolesAndPermissionsByUserId($form->user_id);
+        $newItems = array_merge($form->roles, $form->permissions);
         $existingItems = array_merge($existingData['roles'], $existingData['permissions']);
+        $rolesAndPermissions = array_diff($newItems, $existingItems);
+        if (empty($rolesAndPermissions)) {
+            return;
+        }
 
         $data = [
-            'userId' => $data['user_id'],
-            'newItems' => $newItems,
-            'existingItems' => $existingItems
+            'userId' => $form->user_id,
+            'rolesAndPermissions' => $rolesAndPermissions
         ];
-        return $this->rbacRepository->addRolesAndPermissions($data);
+        $this->rbacRepository->addRolesAndPermissions($data);
     }
 }

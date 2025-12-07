@@ -2,12 +2,14 @@
 
 namespace app\controllers\api;
 
+use app\models\forms\RolesAndPermissionsForm;
+use app\models\forms\UserForm;
 use app\repositories\UserRepository;
-use Exception;
-use Yii;
 use yii\web\Response;
 use yii\filters\ContentNegotiator;
 use app\services\RbacService;
+use Exception;
+use Yii;
 
 class RbacController extends ApiController
 {
@@ -18,11 +20,11 @@ class RbacController extends ApiController
         $id,
         $module,
         RbacService $rbacService,
-        UserRepository $serviceRepository,
+        UserRepository $userRepository,
         $config = []
     ) {
         $this->rbacService = $rbacService;
-        $this->userRepository = $serviceRepository;
+        $this->userRepository = $userRepository;
         parent::__construct($id, $module, $config);
     }
 
@@ -45,20 +47,23 @@ class RbacController extends ApiController
      * Получить все роли и разрешения пользователя
      * GET api/rbac/user-permissions/1/1
      *
-     * @param int $externalId // тут будет внешний ID
+     * @param int $externalId
      * @param int $serviceId
      * @return array
      */
     public function actionUserPermissions(int $externalId, int $serviceId): array
     {
+        $form = new UserForm([
+            'external_id' => $externalId,
+            'service_id'  => $serviceId,
+        ]);
         try {
-            $user = $this->userRepository->findByExternalIdAndService($externalId, $serviceId);
-            if (!$user) {
-                return $this->error("Пользователь с ID {$externalId} не найден", 404);
+            if ($form->validate()) {
+                $data = $this->rbacService->getRolesAndPermissionsByUserId($form->user_id);
+                return $this->success($data);
+            } else {
+                return $this->error($form->getError());
             }
-
-            $data = $this->rbacService->getRolesAndPermissionsByUserId($user->id);
-            return $this->success($data);
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }
@@ -93,17 +98,14 @@ class RbacController extends ApiController
      */
     public function actionAddRolesAndPermissions(): array
     {
+        $form = new RolesAndPermissionsForm();
         try {
-            $postData = json_decode(Yii::$app->request->getRawBody(), true);
-
-            $user = $this->userRepository->findByExternalIdAndService($postData['external_id'], $postData['service_id']);
-            if (!$user) {
-                return $this->error("Пользователь с ID {$postData['external_id']} не найден", 404);
+            if ($form->load(Yii::$app->request->getBodyParams(), '') && $form->validate()) {
+                $this->rbacService->addRolesAndPermissions($form);
+                return $this->success($form->toArray());
+            } else {
+                return $this->error($form->getErrorsAsString());
             }
-
-            $postData['external_id'] = $user->id;
-            $data = $this->rbacService->addRolesAndPermissions($postData);
-            return $this->success($data);
         } catch (Exception $e) {
             return $this->error($e->getMessage(), 500, true);
         }

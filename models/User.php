@@ -2,9 +2,7 @@
 
 namespace app\models;
 
-use api\models\traits\ModelGetErrorTrait;
 use app\models\validators\ServiceNameValidator;
-use Yii;
 use yii\db\ActiveQuery;
 
 /**
@@ -29,7 +27,7 @@ class User extends BaseModel
     /**
      * @var string|null Виртуальное поле - название сервиса
      */
-    public $service_name;
+    public ?string $service_name;
 
     /**
      * {@inheritdoc}

@@ -29,7 +29,7 @@ class UserService
             $form->service_id = $service->id;
         }
 
-        if ($this->userRepository->findByExternalIdAndService($form->external_id, $form->service_id)) {
+        if ($this->userRepository->findByExternalIdAndServiceId($form->external_id, $form->service_id)) {
             throw new Exception('Пользователь уже существует');
         }
 

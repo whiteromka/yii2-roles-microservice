@@ -1,6 +1,6 @@
 <?php
 
-namespace api\models\forms;
+namespace app\models\forms;
 
 use app\models\validators\ServiceEitherValidator;
 
