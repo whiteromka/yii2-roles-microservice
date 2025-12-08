@@ -29,21 +29,6 @@ class RbacController extends ApiController
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'contentNegotiator' => [
-                'class' => ContentNegotiator::class,
-                'formats' => [
-                    'application/json' => Response::FORMAT_JSON,
-                ],
-            ],
-        ];
-    }
-
-    /**
      * Получить все роли и разрешения пользователя
      * GET api/rbac/user-permissions/1/1
      *
